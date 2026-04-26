@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: NKVPN Subscription API Showcase
+  version: 1.0.0
+  description: Public-safe API contract for subscription lifecycle examples.
+paths:
+  /v1/subscriptions/{subscriptionId}:
+    get:
+      summary: Get subscription summary
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscription summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionSummary"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/subscriptions/{subscriptionId}/devices:
+    post:
+      summary: Register a device
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+      responses:
+        "201":
+          description: Device registered
+        "409":
+          description: Policy rejected the request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyError"
+components:
+  schemas:
+    SubscriptionSummary:
+      type: object
+      required: [id, active, deviceLimit, currentDevices, trafficLimitGb, trafficUsedGb]
+      properties:
+        id:
+          type: string
+        active:
+          type: boolean
+        deviceLimit:
+          type: integer
+        currentDevices:
+          type: integer
+        trafficLimitGb:
+          type: number
+        trafficUsedGb:
+          type: number
+    PolicyError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum: [subscription_inactive, device_limit_reached, traffic_limit_reached]
+        message:
+          type: string
+  responses:
+    NotFound:
+      description: Resource not found
